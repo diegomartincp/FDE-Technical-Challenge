@@ -6,6 +6,10 @@ import requests
 app = Flask(__name__)
 
 FMCSA_API_KEY = os.environ.get("FMCSA_API_KEY")
+proxies = {
+    "http": "http://35.209.187.70:3128",
+    "https": "http://35.209.187.70:3128"
+}
 
 # Se requerirá un API KEY para acceder a los endpoints que expone flask
 def require_api_key(f):
@@ -31,7 +35,7 @@ def validate_mc():
     url = f"https://mobile.fmcsa.dot.gov/qc/services/carriers/docket-number/{mc_number}?webKey={FMCSA_API_KEY}"
 
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=10,proxies=proxies)
         if response.status_code != 200:
             return jsonify({'error': 'FMCSA API error', 'status': response.status_code}), 502
 
