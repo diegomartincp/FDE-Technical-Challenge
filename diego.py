@@ -67,9 +67,73 @@ def validate_mc():
 @require_api_key
 def get_loads():
     try:
+        conn = psycopg2.connect(
+            dbname=os.environ.get("POSTGRES_DB", "loads"),
+            user=os.environ.get("POSTGRES_USER", "postgres"),
+            password=os.environ.get("POSTGRES_PASSWORD"),
+            host=os.environ.get("POSTGRES_HOST", "localhost"),
+            port=os.environ.get("POSTGRES_PORT", 5432)
+        )
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT load_id, origin, destination, pickup_datetime, delivery_datetime,
+                   equipment_type, loadboard_rate, notes, weight, commodity_type,
+                   num_of_pieces, miles, dimensions
+            FROM loads
+        """)
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+        loads = []
+        for row in rows:
+            data = dict(zip(columns, row))
+            # Transformación de los datos siguiendo el ejemplo del API Get Loads V1 eliminando los datos de contacto
+            load = {
+                "reference_number": f"{data['load_id']}",
+                "stops": [
+                    {
+                        "type": "Pick",
+                        "location": {
+                            "city": data["origin"].split(",")[0].strip(),
+                            "state": data["origin"].split(",")[1].strip() if "," in data["origin"] else "",
+                            "country": "USA"
+                        },
+                        "pickup_datetime": data["pickup_datetime"].isoformat() + "Z",
+                    },
+                    {
+                        "type": "Drop",
+                        "location": {
+                            "city": data["destination"].split(",")[0].strip(),
+                            "state": data["destination"].split(",")[1].strip() if "," in data["destination"] else "",
+                            "country": "USA"
+                        },
+                        "delivery_datetime": data["delivery_datetime"].isoformat() + "Z",
+
+                    }
+                ],
+                "equipment_type": {
+                    "name": data["equipment_type"]
+                },
+                "max_buy": float(data["loadboard_rate"]) if data["loadboard_rate"] else 0.0,
+                "status": "Available",
+                "is_partial": False,
+                "weight": float(data["weight"]) if data["weight"] else 0.0,
+                "number_of_pieces": int(data["num_of_pieces"]) if data["num_of_pieces"] else 0,
+                "commodity_type": data["commodity_type"],
+                "sale_notes": data["notes"] or "",
+                "dimensions": data["dimensions"],
+                "miles": int(data["miles"]) if data["miles"] else 0
+            }
+            loads.append(load)
+        cur.close()
+        conn.close()
+        return jsonify({"status": 200, "loads": loads}), 200
+    except Exception as e:
+        return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
+
+    try:
         # Conexión a la base de datos Postgres
         conn = psycopg2.connect(
-            dbname=os.environ.get("POSTGRES_DB", "carrier_sales"),
+            dbname=os.environ.get("POSTGRES_DB", "loads"),
             user=os.environ.get("POSTGRES_USER", "postgres"),
             password=os.environ.get("POSTGRES_PASSWORD"),
             host=os.environ.get("POSTGRES_HOST", "localhost"),

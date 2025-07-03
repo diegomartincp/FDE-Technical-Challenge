@@ -1,5 +1,8 @@
-#Activar ngrok server
-ngrok http https://localhost:5005
+# Activar ngrok server
+ngrok http https://localhost:5055
+
+# Docker postgres container
+docker run --name my_postgres -d postgres -e POSTGRES_PASSWORD=mysecretpassword -v my_pgdata:/var/lib/postgresql/data -p 5432:5432
 
 
 
@@ -25,3 +28,4 @@ The goal is to confirm whether the carrier is legally authorized to operate.
 Say that you are going to verify the callers MC number in your system, and to hold for a second
 
 ## Parameters
+
