@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request, jsonify
+import psycopg2
 import requests
 
 app = Flask(__name__)
@@ -61,5 +62,34 @@ def validate_mc():
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
+# Endpoint que devuelve todas las cargas de la base de datos en formato JSON
+@app.route('/loads', methods=['GET'])
+@require_api_key
+def get_loads():
+    try:
+        # Conexión a la base de datos Postgres
+        conn = psycopg2.connect(
+            dbname=os.environ.get("POSTGRES_DB", "carrier_sales"),
+            user=os.environ.get("POSTGRES_USER", "postgres"),
+            password=os.environ.get("POSTGRES_PASSWORD"),
+            host=os.environ.get("POSTGRES_HOST", "localhost"),
+            port=os.environ.get("POSTGRES_PORT", 5432)
+        )
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT load_id, origin, destination, pickup_datetime, delivery_datetime,
+                   equipment_type, loadboard_rate, notes, weight, commodity_type,
+                   num_of_pieces, miles, dimensions
+            FROM loads
+        """)
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+        loads = [dict(zip(columns, row)) for row in rows]
+        cur.close()
+        conn.close()
+        return jsonify(loads), 200
+    except Exception as e:
+        return jsonify({'error': 'Database error', 'details': str(e)}), 500
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5005, ssl_context='adhoc')
+    app.run(debug=True, port=5055, ssl_context='adhoc',host='0.0.0.0')
