@@ -130,8 +130,10 @@ def get_loads():
     except Exception as e:
         return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
 
+@app.route('/loads/<int:load_id>', methods=['GET'])
+@require_api_key
+def get_load_by_id(load_id):
     try:
-        # Conexión a la base de datos Postgres
         conn = psycopg2.connect(
             dbname=os.environ.get("POSTGRES_DB", "loads"),
             user=os.environ.get("POSTGRES_USER", "postgres"),
@@ -145,15 +147,99 @@ def get_loads():
                    equipment_type, loadboard_rate, notes, weight, commodity_type,
                    num_of_pieces, miles, dimensions
             FROM loads
-        """)
-        rows = cur.fetchall()
+            WHERE load_id = %s
+        """, (load_id,))
+        row = cur.fetchone()
         columns = [desc[0] for desc in cur.description]
-        loads = [dict(zip(columns, row)) for row in rows]
+        if not row:
+            cur.close()
+            conn.close()
+            return jsonify({'status': 404, 'error': 'Load not found'}), 404
+
+        data = dict(zip(columns, row))
+        load = {
+            "reference_number": f"{data['load_id']}",
+            "stops": [
+                {
+                    "type": "Pick",
+                    "location": {
+                        "city": data["origin"].split(",")[0].strip(),
+                        "state": data["origin"].split(",")[1].strip() if "," in data["origin"] else "",
+                        "country": "USA"
+                    },
+                    "pickup_datetime": data["pickup_datetime"].isoformat() + "Z",
+                },
+                {
+                    "type": "Drop",
+                    "location": {
+                        "city": data["destination"].split(",")[0].strip(),
+                        "state": data["destination"].split(",")[1].strip() if "," in data["destination"] else "",
+                        "country": "USA"
+                    },
+                    "delivery_datetime": data["delivery_datetime"].isoformat() + "Z",
+                }
+            ],
+            "equipment_type": {
+                "name": data["equipment_type"]
+            },
+            "max_buy": float(data["loadboard_rate"]) if data["loadboard_rate"] else 0.0,
+            "status": "Available",
+            "is_partial": False,
+            "weight": float(data["weight"]) if data["weight"] else 0.0,
+            "number_of_pieces": int(data["num_of_pieces"]) if data["num_of_pieces"] else 0,
+            "commodity_type": data["commodity_type"],
+            "sale_notes": data["notes"] or "",
+            "dimensions": data["dimensions"],
+            "miles": int(data["miles"]) if data["miles"] else 0
+        }
         cur.close()
         conn.close()
-        return jsonify(loads), 200
+        return jsonify({"status": 200, "load": load}), 200
     except Exception as e:
-        return jsonify({'error': 'Database error', 'details': str(e)}), 500
+        return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
+
+@app.route('/call_logs', methods=['POST'])
+@require_api_key
+def store_call_log():
+    try:
+        data = request.get_json()
+        # Conversión y validación de tipos
+        duration = int(data.get("duration", 0))
+        agent_name = data.get("agent_name")
+        negotiation_rounds = int(data.get("negotiation_rounds", 0))
+        carrier_id = int(data.get("carrier_id")) if data.get("carrier_id") else None
+        load_id = int(data.get("load_id")) if data.get("load_id") else None
+        sale_closed = data.get("sale_closed") == "deal-closed"
+        sentiment = data.get("sentiment")
+        notes = data.get("notes", "")
+
+        # Conexión a la base de datos
+        conn = psycopg2.connect(
+            dbname=os.environ.get("POSTGRES_DB", "carrier_sales"),
+            user=os.environ.get("POSTGRES_USER", "postgres"),
+            password=os.environ.get("POSTGRES_PASSWORD"),
+            host=os.environ.get("POSTGRES_HOST", "localhost"),
+            port=os.environ.get("POSTGRES_PORT", 5432)
+        )
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO call_logs (
+                duration, agent_name, negotiation_rounds, carrier_id, load_id,
+                sale_closed, sentiment, notes
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING call_id
+        """, (
+            duration, agent_name, negotiation_rounds, carrier_id, load_id,
+            sale_closed, sentiment, notes
+        ))
+        call_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({"status": 201, "call_id": call_id}), 201
+    except Exception as e:
+        return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5055, ssl_context='adhoc',host='0.0.0.0')
