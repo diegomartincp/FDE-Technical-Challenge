@@ -31,6 +31,7 @@ services:
     volumes:
       - .superset_home:/app/superset_home
       - ./docker/requirements-local.txt:/app/requirements-local.txt
+      - ./docker/superset_config.py:/app/superset_config.py
 
   nginx:
     image: nginx:latest
