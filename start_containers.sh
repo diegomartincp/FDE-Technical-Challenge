@@ -9,7 +9,7 @@ echo "-- > Copying the HTTP configuration to nginx/nginx.conf"
 cp nginx/nginx.http.conf nginx/nginx.conf
 
 # Step 2: Start nginx only in HTTP mode
-echo "Starting nginx only in HTTP mode"
+echo "-- > Starting nginx only in HTTP mode"
 docker-compose up -d nginx
 
 # Step 3: Ask if you want to create or renew certificates
