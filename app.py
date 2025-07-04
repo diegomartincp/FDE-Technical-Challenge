@@ -5,11 +5,16 @@ import requests
 
 app = Flask(__name__)
 
+# Get the FMCSA API key from the env 
 FMCSA_API_KEY = os.environ.get("FMCSA_API_KEY")
-proxies = {
-    "http": "http://35.209.187.70:3128",
-    "https": "http://35.209.187.70:3128"
-}
+# DB connection
+conn = psycopg2.connect(
+    dbname=os.environ.get("POSTGRES_DB", "carrier_sales"),
+    user=os.environ.get("POSTGRES_USER", "postgres"),
+    password=os.environ.get("POSTGRES_PASSWORD"),
+    host=os.environ.get("POSTGRES_HOST"), # This field should be defined as "db" in the .env, as in the docker-compose.yml file
+    port=os.environ.get("POSTGRES_PORT", 5432)
+)
 
 # Se requerirá un API KEY para acceder a los endpoints que expone flask
 def require_api_key(f):
@@ -35,7 +40,7 @@ def validate_mc():
     url = f"https://mobile.fmcsa.dot.gov/qc/services/carriers/docket-number/{mc_number}?webKey={FMCSA_API_KEY}"
 
     try:
-        response = requests.get(url, timeout=10,proxies=proxies)
+        response = requests.get(url, timeout=10)
         if response.status_code != 200:
             return jsonify({'error': 'FMCSA API error', 'status': response.status_code}), 502
 
@@ -71,13 +76,6 @@ def validate_mc():
 @require_api_key
 def get_loads():
     try:
-        conn = psycopg2.connect(
-            dbname=os.environ.get("POSTGRES_DB", "loads"),
-            user=os.environ.get("POSTGRES_USER", "postgres"),
-            password=os.environ.get("POSTGRES_PASSWORD"),
-            host=os.environ.get("POSTGRES_HOST", "localhost"),
-            port=os.environ.get("POSTGRES_PORT", 5432)
-        )
         cur = conn.cursor()
         cur.execute("""
             SELECT load_id, origin, destination, pickup_datetime, delivery_datetime,
@@ -138,13 +136,6 @@ def get_loads():
 @require_api_key
 def get_load_by_id(load_id):
     try:
-        conn = psycopg2.connect(
-            dbname=os.environ.get("POSTGRES_DB", "loads"),
-            user=os.environ.get("POSTGRES_USER", "postgres"),
-            password=os.environ.get("POSTGRES_PASSWORD"),
-            host=os.environ.get("POSTGRES_HOST", "localhost"),
-            port=os.environ.get("POSTGRES_PORT", 5432)
-        )
         cur = conn.cursor()
         cur.execute("""
             SELECT load_id, origin, destination, pickup_datetime, delivery_datetime,
@@ -207,6 +198,7 @@ def get_load_by_id(load_id):
 def store_call_log():
     try:
         data = request.get_json()
+        print(data)
         # Conversión y validación de tipos
         duration = int(data.get("duration", 0))
         agent_name = data.get("agent_name")
@@ -217,14 +209,6 @@ def store_call_log():
         sentiment = data.get("sentiment")
         notes = data.get("notes", "")
 
-        # Conexión a la base de datos
-        conn = psycopg2.connect(
-            dbname=os.environ.get("POSTGRES_DB", "carrier_sales"),
-            user=os.environ.get("POSTGRES_USER", "postgres"),
-            password=os.environ.get("POSTGRES_PASSWORD"),
-            host=os.environ.get("POSTGRES_HOST"), # This field should be defined as "db" in the .env, as in the docker-compose.yml file
-            port=os.environ.get("POSTGRES_PORT", 5432)
-        )
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO call_logs (
