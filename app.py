@@ -9,27 +9,14 @@ app = Flask(__name__)
 # Get the FMCSA API key from the env 
 FMCSA_API_KEY = os.environ.get("FMCSA_API_KEY")
 # DB connection with retry
-"""
-This function is used to connect to the database with a retry mechanism as the database is not always available
-when the app is deployed in a container.
-It takes almost 5 seconds to start the database container, so we need to retry the connection if we want to define 
-the connection globally in the app.py file, instead of defining it in each endpoint.
-"""
-def get_conn_with_retry(max_retries=10, delay=3):
-    for attempt in range(max_retries):
-        try:
-            conn = psycopg2.connect(
-                dbname=os.environ.get("POSTGRES_DB", "carrier_sales"),
-                user=os.environ.get("POSTGRES_USER", "postgres"),
-                password=os.environ.get("POSTGRES_PASSWORD"),
-                host=os.environ.get("POSTGRES_HOST"),
-                port=os.environ.get("POSTGRES_PORT", 5432)
-            )
-            return conn
-        except psycopg2.OperationalError as e:
-            print(f"Intento {attempt+1}/{max_retries} fallido: {e}", flush=True)
-            time.sleep(delay)
-    raise Exception("No se pudo conectar a la base de datos tras varios intentos")
+def get_conn():
+    return psycopg2.connect(
+        dbname=os.environ.get("POSTGRES_DB", "carrier_sales"),
+        user=os.environ.get("POSTGRES_USER", "postgres"),
+        password=os.environ.get("POSTGRES_PASSWORD"),
+        host=os.environ.get("POSTGRES_HOST"),
+        port=os.environ.get("POSTGRES_PORT", 5432)
+    )
 
 # Se requerirá un API KEY para acceder a los endpoints que expone flask
 def require_api_key(f):
@@ -91,6 +78,7 @@ def validate_mc():
 @require_api_key
 def get_loads():
     try:
+        conn = get_conn()
         cur = conn.cursor()
         cur.execute("""
             SELECT load_id, origin, destination, pickup_datetime, delivery_datetime,
@@ -151,6 +139,7 @@ def get_loads():
 @require_api_key
 def get_load_by_id(load_id):
     try:
+        conn = get_conn()
         cur = conn.cursor()
         cur.execute("""
             SELECT load_id, origin, destination, pickup_datetime, delivery_datetime,
@@ -224,6 +213,7 @@ def store_call_log():
         sentiment = data.get("sentiment")
         notes = data.get("notes", "")
 
+        conn = get_conn()
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO call_logs (
