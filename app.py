@@ -198,7 +198,7 @@ def get_load_by_id(load_id):
 def store_call_log():
     try:
         data = request.get_json()
-        print(data)
+        print(data, flush=True)
         # Conversión y validación de tipos
         duration = int(data.get("duration", 0))
         agent_name = data.get("agent_name")
