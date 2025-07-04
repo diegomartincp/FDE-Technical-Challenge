@@ -22,15 +22,22 @@ if [ $? -ne 0 ]; then
   echo "ERROR: Certbot failed. Exiting."
   exit 1
 fi
+# Step 4: "Start Superset dashboard and create admin user"
+echo "Start Superset dashboard and create admin user"
+docker-compose up -d superset
+docker exec -it superset superset db upgrade
+docker exec -it superset superset fab create-admin \
+    --username admin --firstname Admin --lastname User --email admin@superset.local --password admin
+docker exec -it superset superset init
 
-# Step 4: Replace the configuration with the HTTPS one
+# Step 5: Replace the configuration with the HTTPS one
 echo "Replacing the configuration with the HTTPS one"
 cp nginx/nginx.https.conf nginx/nginx.conf
 
-# Step 5: Restart nginx to activate HTTPS
+# Step 6: Restart nginx to activate HTTPS
 echo "Restarting nginx to activate HTTPS"
 docker-compose restart nginx
 
-# Step 6: Start the rest of the services
+# Step 7: Start the rest of the services
 echo "Starting the rest of the services"
-docker-compose up -d app db superset
+docker-compose up -d app db
