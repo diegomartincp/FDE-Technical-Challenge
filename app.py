@@ -22,13 +22,18 @@ def get_conn():
 def require_api_key(f):
     from functools import wraps
     @wraps(f)
+    # Token is send as "Authorization: ApiKey xxxxxxxxxx"
     def decorated(*args, **kwargs):
-        api_key = request.headers.get('ApiKey')
+        auth_header = request.headers.get('Authorization')
         print(request.headers, flush=True)
+        if not auth_header or not auth_header.startswith('ApiKey '):
+            return jsonify({'error': 'Unauthorized access'}), 401
+        api_key = auth_header.split(' ', 1)[1]
         if api_key != os.environ.get("INTERNAL_API_KEY"):
             return jsonify({'error': 'Unauthorized access'}), 401
         return f(*args, **kwargs)
     return decorated
+
 
 
 # Endpoint que valida si el MC number es efectivamente válido y sino devuelve un error
