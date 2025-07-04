@@ -22,6 +22,8 @@ services:
   superset:
     image: apache/superset:latest
     container_name: superset
+    environment:
+      - EXTRA_PIP_PACKAGES=psycopg2-binary
     env_file:
       - .env
     ports:
