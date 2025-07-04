@@ -1,1 +1,0 @@
-docker run --rm -it -v "./certbot/www:/var/www/certbot" -v "./certbot/conf:/etc/letsencrypt" certbot/certbot certonly --webroot --webroot-path=/var/www/certbot --email campos.martin.diego@gmail.com --agree-tos --no-eff-email -d happyrobot-challenge.duckdns.org -d www.happyrobot-challenge.duckdns.org
