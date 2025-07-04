@@ -222,7 +222,7 @@ def store_call_log():
             dbname=os.environ.get("POSTGRES_DB", "carrier_sales"),
             user=os.environ.get("POSTGRES_USER", "postgres"),
             password=os.environ.get("POSTGRES_PASSWORD"),
-            host=os.environ.get("POSTGRES_HOST", "localhost"),
+            host=os.environ.get("POSTGRES_HOST"), # This field should be defined as "db" in the .env, as in the docker-compose.yml file
             port=os.environ.get("POSTGRES_PORT", 5432)
         )
         cur = conn.cursor()
