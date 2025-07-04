@@ -18,14 +18,13 @@ def get_conn():
         port=os.environ.get("POSTGRES_PORT", 5432)
     )
 
-# Se requerirá un API KEY para acceder a los endpoints que expone flask
+# API key ir required to access all endpoints besides the healthcheck
 def require_api_key(f):
     from functools import wraps
     @wraps(f)
     # Token is send as "Authorization: ApiKey xxxxxxxxxx"
     def decorated(*args, **kwargs):
         auth_header = request.headers.get('Authorization')
-        print(request.headers, flush=True)
         if not auth_header or not auth_header.startswith('ApiKey '):
             return jsonify({'error': 'Unauthorized access'}), 401
         api_key = auth_header.split(' ', 1)[1]
