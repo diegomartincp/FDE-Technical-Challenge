@@ -23,11 +23,13 @@ def require_api_key(f):
     from functools import wraps
     @wraps(f)
     def decorated(*args, **kwargs):
-        api_key = request.headers.get('x-api-key')
+        api_key = request.headers.get('ApiKey')
+        print(request.headers, flush=True)
         if api_key != os.environ.get("INTERNAL_API_KEY"):
             return jsonify({'error': 'Unauthorized access'}), 401
         return f(*args, **kwargs)
     return decorated
+
 
 # Endpoint que valida si el MC number es efectivamente válido y sino devuelve un error
 # Se requiere un API KEY para acceder a este endpoint
@@ -232,9 +234,10 @@ def store_call_log():
         return jsonify({"status": 201, "call_id": call_id}), 201
     except Exception as e:
         return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
+
+# Healthcheck
 @app.route("/")
 def index():
-    # Healthcheck
     return "ok"
 
 if __name__ == '__main__':
