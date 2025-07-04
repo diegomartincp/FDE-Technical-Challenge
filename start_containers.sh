@@ -33,4 +33,4 @@ docker-compose restart nginx
 
 # Step 6: Start the rest of the services
 echo "Starting the rest of the services"
-docker-compose up -d app db
+docker-compose up -d app db superset
