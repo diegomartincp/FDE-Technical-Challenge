@@ -20,19 +20,16 @@ services:
       - "5432:5432"
 
   superset:
-      image: apache/superset:latest
-      container_name: superset
-      environment:
-        - SUPERSET_SECRET_KEY=una_clave_secreta_segura
-        - ADMIN_USERNAME=admin
-        - ADMIN_PASSWORD=admin
-        - ADMIN_EMAIL=admin@superset.local
-      ports:
-        - "8088:8088"
-      depends_on:
-        - db
-      volumes:
-        - .superset_home:/app/superset_home
+    image: apache/superset:latest
+    container_name: superset
+    env_file:
+      - .env
+    ports:
+      - "8088:8088"
+    depends_on:
+      - db
+    volumes:
+      - .superset_home:/app/superset_home
 
   nginx:
     image: nginx:latest
