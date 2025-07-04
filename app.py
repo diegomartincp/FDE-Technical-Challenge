@@ -232,7 +232,10 @@ def store_call_log():
         return jsonify({"status": 201, "call_id": call_id}), 201
     except Exception as e:
         return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
-
+@app.route("/")
+def index():
+    # Healthcheck
+    return "ok"
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000, host='0.0.0.0')
