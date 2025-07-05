@@ -83,7 +83,7 @@ Create a `.env` file in the project root with the following content:
 `SUPERSET_SECRET_KEY=S3cret`  
 `ADMIN_USERNAME=admin`
 `ADMIN_PASSWORD=admin`
-`ADMIN_EMAIL=[admin@superset.local](mailto:admin@superset.local)`
+`ADMIN_EMAIL=admin@superset.local`
 
 ## API Endpoints
 All API endpoints are exposed under the `/backend` path and require authentication via an API Key in the header:
