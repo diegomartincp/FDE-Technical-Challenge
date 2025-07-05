@@ -1,4 +1,6 @@
 #!/bin/bash
 git pull
-docker-compose build --no-cache app
-docker-compose up -d app
+chmod 755 superset_home
+chmod 755 dbdata
+docker-compose up -d --build app
+
