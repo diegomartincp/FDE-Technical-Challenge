@@ -8,11 +8,11 @@ app = Flask(__name__)
 
 # Get the FMCSA API key from the env 
 FMCSA_API_KEY = os.environ.get("FMCSA_API_KEY")
-# DB connection with retry
+# DB connection from env
 def get_conn():
     return psycopg2.connect(
-        dbname=os.environ.get("POSTGRES_DB", "carrier_sales"),
-        user=os.environ.get("POSTGRES_USER", "postgres"),
+        dbname=os.environ.get("POSTGRES_DB"),
+        user=os.environ.get("POSTGRES_USER"),
         password=os.environ.get("POSTGRES_PASSWORD"),
         host=os.environ.get("POSTGRES_HOST"),
         port=os.environ.get("POSTGRES_PORT", 5432)
@@ -35,8 +35,8 @@ def require_api_key(f):
 
 
 
-# Endpoint que valida si el MC number es efectivamente válido y sino devuelve un error
-# Se requiere un API KEY para acceder a este endpoint
+# This endpoints validates the MC number using the FMCSA API and returns the carrier name if found
+# This endpoint is protected by an API key, which is required to access it
 @app.route('/validate-mc', methods=['POST'])
 @require_api_key
 def validate_mc():
@@ -53,8 +53,9 @@ def validate_mc():
             return jsonify({'error': 'FMCSA API error', 'status': response.status_code}), 502
 
         result = response.json()
-        # Se extraen los campos relevantes y si no se encuentra el carrier se devuelve un error
+        # Extract relevant data from the response
         content = result.get("content", [])
+        # If the content is empty, the carrier was not found
         if not content:
             return jsonify({'error': 'Carrier not found'}), 404
 
@@ -64,9 +65,10 @@ def validate_mc():
         legal_name = carrier.get("legalName")
         dot_number = carrier.get("dotNumber")
 
-        # Lógica de validación del carrier
+        # Check if the carrier is valid based on the allowedToOperate and statusCode values
         is_valid = allowed_to_operate == "Y" and status_code == "A"
 
+        #Return the result as JSON
         return jsonify({
             "mc_number": mc_number,
             "dot_number": dot_number,
@@ -80,7 +82,8 @@ def validate_mc():
         print("Error in /validate-mc:", e, flush=True)
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
-# Endpoint que devuelve todas las cargas de la base de datos en formato JSON
+# This endpoint returns all the loads in the database
+# This endpoint is protected by an API key, which is required to access it
 @app.route('/loads', methods=['GET'])
 @require_api_key
 def get_loads():
@@ -98,7 +101,7 @@ def get_loads():
         loads = []
         for row in rows:
             data = dict(zip(columns, row))
-            # Transformación de los datos siguiendo el ejemplo del API Get Loads V1 eliminando los datos de contacto
+            # Transform data following the example of Get Loads V1, but removing contact data bacause of lack of data
             load = {
                 "reference_number": f"{data['load_id']}",
                 "stops": [
@@ -143,6 +146,8 @@ def get_loads():
         print("Error in /loads:", e, flush=True)
         return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
 
+# This endpoint return a specific load by its ID
+# The API key is required to access this endpoint
 @app.route('/loads/<int:load_id>', methods=['GET'])
 @require_api_key
 def get_load_by_id(load_id):
@@ -206,13 +211,23 @@ def get_load_by_id(load_id):
         print("Error in /loads/id:", e, flush=True)
         return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
 
+#This endpoint is used to send the call logs to the server and store them in the database.
+# It returns the call log id if the call log is stored successfully.
+# The endpoint requires an API key in the Authorization header with the format "ApiKey <api_key>".
+# It expects a JSON payload with the following fields:
+# - duration (int): The duration of the call in seconds.
+# - agent_name (str): The name of the agent who handled the call.
+# - negotiation_rounds (int): The number of negotiation rounds in the call.
+# - carrier_id (int): The ID of the carrier who handled the call.
+# - load_id (int): The ID of the load associated with the call.
+# - sale_closed (bool): A flag indicating whether the sale was closed
 @app.route('/call_logs', methods=['POST'])
 @require_api_key
 def store_call_log():
     try:
         data = request.get_json()
         print(data, flush=True)
-        # Conversión y validación de tipos
+        # Convert string values to appropriate types
         duration = int(data.get("duration", 0))
         agent_name = data.get("agent_name")
         negotiation_rounds = int(data.get("negotiation_rounds", 0))
@@ -243,7 +258,7 @@ def store_call_log():
         print("Error in /call_logs:", e, flush=True)
         return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
 
-# Healthcheck
+# Healthcheck endpoint to check the server's health.
 @app.route("/")
 def index():
     return "ok"
