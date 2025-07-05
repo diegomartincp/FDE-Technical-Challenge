@@ -1,24 +1,34 @@
 
 # FDE Technical Challenge
 
-This project is a complete, production-ready solution for managing inbound carrier engagement in the logistics and freight industry. It is designed to automate and streamline the process of handling carrier calls, negotiating loads, and tracking key operational metrics, all while ensuring security and scalability.
+This project is a complete, production-ready solution for managing inbound carrier engagement in the logistics and freight industry.
+Is designed to automate and streamline the process of handling carrier calls, negotiating loads, and tracking key operational metrics, all while ensuring security and scalability.
+Also will save important data regarding the call, negotiation process and sentiment analysis of the caller and store in a database while also prviding important KPIs in a dashboard
 
 ## Key Components
 
 -   **Flask REST API:**  
-    Serves as the backend for handling all business logic, including carrier verification, load search, negotiation workflows, and call logging. The API is fully secured with API Key authentication and only accessible via HTTPS.
+    Serves as the backend for handling all business logic, including carrier verification, load search,  and call logging.
+    The API is fully secured with API Key authentication and only accessible via HTTPS.
+    [https://happyrobot-challenge.duckdns.org/backend/](https://happyrobot-challenge.duckdns.org/backend/)  
     
 -   **PostgreSQL Database:**  
-    Stores all persistent data, including loads, call logs, and related metadata. The schema is designed to capture all relevant information for each load and call, supporting analytics and reporting.
+    Stores all persistent data, including loads and call logs.
+    The schema is designed to capture all relevant information for each load and call.
     
 -   **Apache Superset Dashboard:**  
-    Provides interactive data visualization and reporting. Users can explore metrics such as call volume, sales closure rates, agent performance, and sentiment analysis through customizable dashboards.
+    Provides interactive data visualization and reporting.
+    Users can explore metrics such as call volume, sales closure rates, agent performance, and sentiment analysis through dashboards.
+    [Superset Dashboard](https://happyrobot-challenge.duckdns.org/superset/dashboard/p/Gme1yR2rRA7/)  
+    [Superset Login](https://happyrobot-challenge.duckdns.org/)  
     
 -   **Nginx Reverse Proxy & Certbot (Let's Encrypt):**  
-    Ensures all endpoints are served securely over HTTPS. Nginx acts as a reverse proxy, routing requests to the appropriate backend services, while Certbot automates SSL certificate management.
+    Ensures all endpoints are served securely over HTTPS. Nginx acts as a reverse proxy, routing requests to the backend services, and Certbot automates SSL certificate management.
     
 -   **Containerization with Docker Compose:**  
-    All services are containerized for easy deployment, reproducibility, and scalability. The solution can be deployed both locally (for testing) and in the cloud.
+    All services are containerized for easy deployment, and scalation.
+    The solution is currently containerized in a Google Cloud's Debian VM instance.
+
 
 
 ## Table of Contents
@@ -30,6 +40,7 @@ This project is a complete, production-ready solution for managing inbound carri
    * [Environment Variables](#environment-variables)
    * [API Endpoints](#api-endpoints)
       + [Example: Request Body for `/backend/call_logs` (POST)](#example-request-body-for-backendcall_logs-post)
+      + [Example: Request Response for `/backend/validate-mc` (POST)](#example-response-body-for-backendvalidate-mc-post)
    * [Deployment Steps](#deployment-steps)
    * [Database schemas](#database-schemas)
       + [Loads table](#loads-table)
@@ -50,11 +61,11 @@ This project is a complete, production-ready solution for managing inbound carri
 ## Requirements
 
 - **Docker** and **Docker Compose** must be installed on your server.
--   **US-based server:**  The FMCSA API (`mobile.fmcsa.dot.gov`) only accepts requests from US IP addresses. For local testing, a VPN to the US is required.
+-   **US-based server or https proxy:**  The FMCSA API (`mobile.fmcsa.dot.gov`) only accepts requests from US IP addresses. For local testing, a VPN to the US is required.
 
 ### Quick install
 
-In the `/install` folder you will find scripts to automate the installation of Docker and Docker Compose.
+In the `/install` folder you can find scripts to automate the installation of Docker and Docker Compose.
 
 ### Install script for ubuntu/debian
 `cd install`
@@ -78,6 +89,7 @@ Create a `.env` file in the project root with the following content:
 All API endpoints are exposed under the `/backend` path and require authentication via an API Key in the header:
 | Endpoint | Method | Description | Request Body / Parameters | Response Format |
 |--|--|--|--|--|
+| `validate-mc` | POST | Validates a MC number from a carrier | JSON object `{"mc_number": "123456"}`| JSON array of loads |
 | `/backend/loads` | GET | Get a list of available loads | None | JSON array of loads |
 | `/backend/loads/<id>` | GET | Get details for a specific load | URL parameter: `id` (integer) | JSON object |
 | `/backend/call_logs` | POST | Create a new call log | JSON object (see below) | Created log as JSON |
@@ -100,13 +112,24 @@ Add the following header to all requests (except healthcheck):
 "notes": "Carrier was satisfied with the offer and agreed to the proposed rate after a brief negotiation. All details were confirmed during the call."  
 }
 - **duration**: (string/integer) Duration of the call in seconds.
-- - **agent_name**: (string) Name of the agent.
-- - **negotiation_rounds**: (string/integer) Number of negotiation rounds.
-- - **carrier_id**: (string/integer) Carrier identifier.
-- - **load_id**: (string/integer) Load identifier.
-- - **sale_closed**: (string) `"deal-closed"` or `"deal-not-closed"`.
-- - **sentiment**: (string) `"sentiment-positive"`, `"sentiment-neutral"`, or `"sentiment-negative"`.
-- - **notes**: (string) Notes or summary of the call. 
+- **agent_name**: (string) Name of the agent.
+- **negotiation_rounds**: (string/integer) Number of negotiation rounds.
+- **carrier_id**: (string/integer) Carrier identifier.
+- **load_id**: (string/integer) Load identifier.
+- **sale_closed**: (string) `"deal-closed"` or `"deal-not-closed"`.
+- **sentiment**: (string) `"sentiment-positive"`, `"sentiment-neutral"`, or `"sentiment-negative"`.
+- -*notes**: (string) AI summary of the call. 
+
+### Example: Response Body for `/backend/validate-mc` (POST)
+{
+"allowed_to_operate": "Y",
+"dot_number": 3177404,
+"is_valid": true,
+"legal_name": "B MARRON LOGISTICS LLC",
+"mc_number": "123456",
+"status_code": "A"
+}
+**All data is a direct split from the FMCSA API**
 
 ## Deployment Steps
 1. **Clone the repository:**
@@ -157,15 +180,10 @@ This will install:
 | negotiation_rounds |  integer | Number of negotiation rounds |
 
 ## Accessing Superset Dashboard
-- **URL:** `https://happyrobot-challenge.duckdns.org/` (or your configured domain)
+- **URL:** [Superset Dashboard](https://happyrobot-challenge.duckdns.org/superset/dashboard/p/Gme1yR2rRA7/)  
 - **Default credentials:**
 	- Username: `admin`
 	- Password: `admin`
-
-**Steps:**
-1. Open the URL in your browser.
-2. Log in with the provided credentials.
-3. Go to the **Dashboards** section to view analytics and visualizations.
 
 ## Security and best practices
 -   **HTTPS enforced:**  All endpoints are only accessible via HTTPS.
