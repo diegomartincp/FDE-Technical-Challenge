@@ -1,3 +1,12 @@
 .env
 certbot/
 dbdata
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.git
+.gitignore
+Dockerfile
+README.md

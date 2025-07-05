@@ -263,5 +263,8 @@ def store_call_log():
 def index():
     return "ok"
 
+"""
+# Enable for developement
 if __name__ == '__main__':
     app.run(debug=True, port=5000, host='0.0.0.0')
+"""
