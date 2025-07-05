@@ -89,7 +89,7 @@ Create a `.env` file in the project root with the following content:
 All API endpoints are exposed under the `/backend` path and require authentication via an API Key in the header:
 | Endpoint | Method | Description | Request Body / Parameters | Response Format |
 |--|--|--|--|--|
-| `validate-mc` | POST | Validates a MC number from a carrier | JSON object `{"mc_number": "123456"}`| JSON array of loads |
+| `/validate-mc` | POST | Validates a MC number from a carrier | JSON object `{"mc_number": "123456"}`| JSON array of loads |
 | `/backend/loads` | GET | Get a list of available loads | None | JSON array of loads |
 | `/backend/loads/<id>` | GET | Get details for a specific load | URL parameter: `id` (integer) | JSON object |
 | `/backend/call_logs` | POST | Create a new call log | JSON object (see below) | Created log as JSON |
@@ -101,16 +101,16 @@ Add the following header to all requests (except healthcheck):
 
 ### Example: Request Body for `/backend/call_logs` (POST)
 
-{  
-"duration": "85",  
-"agent_name": "Maria",  
-"negotiation_rounds": "3",  
-"carrier_id": "987654",  
-"load_id": "7",  
-"sale_closed": "deal-closed",  
-"sentiment": "sentiment-positive",  
-"notes": "Carrier was satisfied with the offer and agreed to the proposed rate after a brief negotiation. All details were confirmed during the call."  
-}
+`{`
+`"duration": "85",`
+`"agent_name": "Maria",`
+`"negotiation_rounds": "3",`
+`"carrier_id": "987654",`
+`"load_id": "7",`
+`"sale_closed": "deal-closed",`
+`"sentiment": "sentiment-positive",`
+`"notes": "Carrier was satisfied with the offer and agreed to the proposed rate after a brief negotiation.` `All details were confirmed during the call."`
+`}`
 - **duration**: (string/integer) Duration of the call in seconds.
 - **agent_name**: (string) Name of the agent.
 - **negotiation_rounds**: (string/integer) Number of negotiation rounds.
@@ -121,14 +121,14 @@ Add the following header to all requests (except healthcheck):
 - -*notes**: (string) AI summary of the call. 
 
 ### Example: Response Body for `/backend/validate-mc` (POST)
-{
-"allowed_to_operate": "Y",
-"dot_number": 3177404,
-"is_valid": true,
-"legal_name": "B MARRON LOGISTICS LLC",
-"mc_number": "123456",
-"status_code": "A"
-}
+`{`
+`"allowed_to_operate": "Y",`
+`"dot_number": 3177404,`
+`"is_valid": true,`
+`"legal_name": "B MARRON LOGISTICS LLC",`
+`"mc_number": "123456",`
+`"status_code": "A"`
+`}`
 **All data is a direct split from the FMCSA API**
 
 ## Deployment Steps
