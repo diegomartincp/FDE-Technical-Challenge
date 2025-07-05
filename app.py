@@ -77,6 +77,7 @@ def validate_mc():
         }), 200
 
     except Exception as e:
+        print("Error in /validate-mc:", e, flush=True)
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
 # Endpoint que devuelve todas las cargas de la base de datos en formato JSON
@@ -139,6 +140,7 @@ def get_loads():
         conn.close()
         return jsonify({"status": 200, "loads": loads}), 200
     except Exception as e:
+        print("Error in /loads:", e, flush=True)
         return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
 
 @app.route('/loads/<int:load_id>', methods=['GET'])
@@ -201,6 +203,7 @@ def get_load_by_id(load_id):
         conn.close()
         return jsonify({"status": 200, "load": load}), 200
     except Exception as e:
+        print("Error in /loads/id:", e, flush=True)
         return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
 
 @app.route('/call_logs', methods=['POST'])
@@ -237,6 +240,7 @@ def store_call_log():
         conn.close()
         return jsonify({"status": 201, "call_id": call_id}), 201
     except Exception as e:
+        print("Error in /call_logs:", e, flush=True)
         return jsonify({'status': 500, 'error': 'Database error', 'details': str(e)}), 500
 
 # Healthcheck
