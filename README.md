@@ -1,6 +1,8 @@
 
 # FDE Technical Challenge
 
+[Solution Architecture Diagram](https://raw.githubusercontent.com/diegomartincp/FDE-Technical-Challenge/refs/heads/main/Utils/Happy%20Robot%20Challenge%20Arq..jpg)
+
 This project is a complete, production-ready solution for managing inbound carrier engagement in the logistics and freight industry.
 Is designed to automate and streamline the process of handling carrier calls, negotiating loads, and tracking key operational metrics, all while ensuring security and scalability.
 Also will save important data regarding the call, negotiation process and sentiment analysis of the caller and store in a database while also prviding important KPIs in a dashboard
@@ -75,7 +77,7 @@ In the `/install` folder you can find scripts to automate the installation of Do
 ## Environment Variables
 Create a `.env` file in the project root with the following content:
 `FMCSA_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`  
-`INTERNAL_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`  
+`INTERNAL_API_KEY=28685360-5443-4812-8182-6b6770221179`  
 `POSTGRES_DB=carrier_sales`  
 `POSTGRES_USER=postgres`  
 `POSTGRES_PASSWORD=S3cret`  
