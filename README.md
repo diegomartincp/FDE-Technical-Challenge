@@ -1,6 +1,7 @@
 
 # FDE Technical Challenge
 
+<img src="https://raw.githubusercontent.com/diegomartincp/FDE-Technical-Challenge/refs/heads/main/Utils/Happy%20Robot%20Challenge%20Arq..jpg" width="auto" title="hover text">
 [Solution Architecture Diagram](https://raw.githubusercontent.com/diegomartincp/FDE-Technical-Challenge/refs/heads/main/Utils/Happy%20Robot%20Challenge%20Arq..jpg)
 
 This project is a complete, production-ready solution for managing inbound carrier engagement in the logistics and freight industry.
