@@ -75,7 +75,7 @@ In the `/install` folder you can find scripts to automate the installation of Do
 ## Environment Variables
 Create a `.env` file in the project root with the following content:
 `FMCSA_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`  
-`INTERNAL_API_KEY=28685360-5443-4812-8182-6b6770221179`  
+`INTERNAL_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`  
 `POSTGRES_DB=carrier_sales`  
 `POSTGRES_USER=postgres`  
 `POSTGRES_PASSWORD=S3cret`  
